@@ -25,10 +25,12 @@ RenderEditableBox _getEditableBox(HitTestResult result) {
 
 /// Selection overlay controls selection handles and other gestures.
 class ZefyrSelectionOverlay extends StatefulWidget {
-  const ZefyrSelectionOverlay({Key key, @required this.controls})
+
+  const ZefyrSelectionOverlay({Key key, @required this.controls, @required this.child})
       : super(key: key);
 
   final TextSelectionControls controls;
+  final Widget child;
 
   @override
   _ZefyrSelectionOverlayState createState() => _ZefyrSelectionOverlayState();
@@ -172,6 +174,7 @@ class _ZefyrSelectionOverlayState extends State<ZefyrSelectionOverlay>
       child: Stack(
         fit: StackFit.expand,
         children: <Widget>[
+          widget.child,
           SelectionHandleDriver(
             position: _SelectionHandlePosition.base,
             selectionOverlay: this,
@@ -227,10 +230,12 @@ class _ZefyrSelectionOverlayState extends State<ZefyrSelectionOverlay>
   }
 
   void _handleTapDown(TapDownDetails details) {
+    print("_handleTapDown");
     _lastTapDownPosition = details.globalPosition;
   }
 
   void _handleTapCancel() {
+    print("_handleTapCancel");
     // longPress arrives after tapCancel, so remember the tap position.
     _longPressPosition = _lastTapDownPosition;
     _lastTapDownPosition = null;

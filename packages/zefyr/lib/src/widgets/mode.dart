@@ -24,7 +24,7 @@ class ZefyrMode {
   static const select =
       ZefyrMode(canEdit: false, canSelect: true, canFormat: true);
 
-  /// View-only mode disables almost all user interactions except the ability
+  /// View-only mode disables almost all user interactions except the abilityD
   /// to launch links in a web browser when tapped.
   static const view =
       ZefyrMode(canEdit: false, canSelect: false, canFormat: false);

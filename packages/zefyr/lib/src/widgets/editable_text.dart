@@ -1,6 +1,7 @@
 // Copyright (c) 2018, the Zefyr project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -21,6 +22,7 @@ import 'render_context.dart';
 import 'scope.dart';
 import 'selection.dart';
 import 'theme.dart';
+import 'toolbar.dart';
 
 /// Core widget responsible for editing Zefyr documents.
 ///
@@ -88,8 +90,7 @@ class ZefyrEditableText extends StatefulWidget {
   _ZefyrEditableTextState createState() => _ZefyrEditableTextState();
 }
 
-class _ZefyrEditableTextState extends State<ZefyrEditableText>
-    with AutomaticKeepAliveClientMixin {
+class _ZefyrEditableTextState extends State<ZefyrEditableText> with AutomaticKeepAliveClientMixin {
   //
   // New public members
   //
@@ -112,8 +113,7 @@ class _ZefyrEditableTextState extends State<ZefyrEditableText>
   /// keyboard become visible.
   void requestKeyboard() {
     if (_focusNode.hasFocus) {
-      _input.openConnection(
-          widget.controller.plainTextEditingValue, widget.keyboardAppearance);
+      _input.openConnection(widget.controller.plainTextEditingValue, widget.keyboardAppearance);
     } else {
       FocusScope.of(context).requestFocus(_focusNode);
     }
@@ -158,9 +158,10 @@ class _ZefyrEditableTextState extends State<ZefyrEditableText>
       child: body,
     );
 
-    final layers = <Widget>[body];
+    final layers = <Widget>[];
     layers.add(ZefyrSelectionOverlay(
       controls: widget.selectionControls ?? defaultSelectionControls(context),
+      child: body,
     ));
 
     return Stack(fit: StackFit.expand, children: layers);
@@ -237,6 +238,9 @@ class _ZefyrEditableTextState extends State<ZefyrEditableText>
   }
 
   Widget _defaultChildBuilder(BuildContext context, Node node) {
+
+    final editor = ZefyrScope.of(context);
+
     if (node is LineNode) {
       if (node.hasEmbed) {
         return ZefyrLine(node: node);
@@ -251,9 +255,15 @@ class _ZefyrEditableTextState extends State<ZefyrEditableText>
     if (blockStyle == NotusAttribute.block.code) {
       return ZefyrCode(node: block);
     } else if (blockStyle == NotusAttribute.block.bulletList) {
-      return ZefyrList(node: block);
+      return ZefyrList(node: block, updateTaskDone: () {
+        widget.controller.formatSelection(NotusAttribute.taskDone.withValue(true));
+      });
     } else if (blockStyle == NotusAttribute.block.numberList) {
-      return ZefyrList(node: block);
+      return ZefyrList(node: block, updateTaskDone: () {
+        print("updateTaskDone");
+        widget.controller.formatSelection(NotusAttribute.heading.level1);
+        print(editor.selectionStyle.toString());
+      });
     } else if (blockStyle == NotusAttribute.block.quote) {
       return ZefyrQuote(node: block);
     }
@@ -290,8 +300,7 @@ class _ZefyrEditableTextState extends State<ZefyrEditableText>
 
   // Triggered for both text and selection changes.
   void _handleLocalValueChange() {
-    if (widget.mode.canEdit &&
-        widget.controller.lastChangeSource == ChangeSource.local) {
+    if (widget.mode.canEdit && widget.controller.lastChangeSource == ChangeSource.local) {
       // Only request keyboard for user actions.
       requestKeyboard();
     }
@@ -303,16 +312,13 @@ class _ZefyrEditableTextState extends State<ZefyrEditableText>
   }
 
   void _handleFocusChange() {
-    _input.openOrCloseConnection(_focusNode,
-        widget.controller.plainTextEditingValue, widget.keyboardAppearance);
+    _input.openOrCloseConnection(_focusNode, widget.controller.plainTextEditingValue, widget.keyboardAppearance);
     _cursorTimer.startOrStop(_focusNode, selection);
     updateKeepAlive();
   }
 
-  void _handleRemoteValueChange(
-      int start, String deleted, String inserted, TextSelection selection) {
-    widget.controller
-        .replaceText(start, deleted.length, inserted, selection: selection);
+  void _handleRemoteValueChange(int start, String deleted, String inserted, TextSelection selection) {
+    widget.controller.replaceText(start, deleted.length, inserted, selection: selection);
   }
 
   void _handleRenderContextChange() {

@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:flutter/material.dart';
 import 'package:notus/notus.dart';
+
 import 'common.dart';
 import 'paragraph.dart';
 import 'theme.dart';
 
 /// Represents number lists and bullet lists in a Zefyr editor.
-class ZefyrList extends StatelessWidget {
-  const ZefyrList({Key key, @required this.node, this.updateTaskDone}) : super(key: key);
+class ZefyrTask extends StatelessWidget {
+  const ZefyrTask({Key key, @required this.node}) : super(key: key);
 
   final BlockNode node;
-  final Function updateTaskDone;
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +24,7 @@ class ZefyrList extends StatelessWidget {
       index++;
     }
 
-    final isNumberList = node.style.get(NotusAttribute.block) == NotusAttribute.block.numberList;
-    EdgeInsets padding =
-        isNumberList ? theme.attributeTheme.numberList.padding : theme.attributeTheme.bulletList.padding;
+    EdgeInsets padding = theme.attributeTheme.numberList.padding;
     padding = padding.copyWith(left: theme.indentWidth);
 
     return Padding(
@@ -37,26 +35,25 @@ class ZefyrList extends StatelessWidget {
 
   Widget _buildItem(Node node, int index) {
     LineNode line = node;
-    return ZefyrListItem(index: index, node: line, updateTaskDone: updateTaskDone,);
+    return ZefyrListItem(index: index, node: line);
   }
 }
 
 /// An item in a [ZefyrList].
 class ZefyrListItem extends StatelessWidget {
-  ZefyrListItem({Key key, this.index, this.node, this.updateTaskDone}) : super(key: key);
+  ZefyrListItem({Key key, this.index, this.node}) : super(key: key);
 
   final int index;
   final LineNode node;
-  final Function updateTaskDone;
 
   @override
   Widget build(BuildContext context) {
     final BlockNode block = node.parent;
     final style = block.style.get(NotusAttribute.block);
     final theme = ZefyrTheme.of(context);
-    final blockTheme =
-        (style == NotusAttribute.block.bulletList) ? theme.attributeTheme.bulletList : theme.attributeTheme.numberList;
-    final bulletText = (style == NotusAttribute.block.bulletList) ? '•' : '$index.';
+    final blockTheme = theme.attributeTheme.numberList;
+    final bulletText =
+        (style == NotusAttribute.block.bulletList) ? '•' : '$index.';
 
     TextStyle textStyle;
     Widget content;
@@ -77,23 +74,11 @@ class ZefyrListItem extends StatelessWidget {
       padding = blockTheme.linePadding;
     }
 
-    bool isDone = node.style.get(NotusAttribute.taskDone) ?? false;
-
-    Widget bullet = (style == NotusAttribute.block.bulletList)
-        ? SizedBox(width: 24.0, child: Text(bulletText, style: textStyle))
-        : GestureDetector(
-              child: Icon(
-                isDone ? Icons.check_box : Icons.crop_square,
-                color: textStyle.color,
-                size: 24.0,
-              ),
-              onTap: () {
-                print("isDone");
-                print(!isDone);
-                node.style.merge(NotusAttribute.taskDone.withValue(!isDone));
-                updateTaskDone();
-              },
-          );
+    Widget bullet =
+    Icon( Icons.crop_square,
+      color: textStyle.color,
+      size: 20.0,
+    );
     if (padding != null) {
       bullet = Padding(padding: padding, child: bullet);
     }

@@ -78,12 +78,16 @@ class NotusAttribute<T> implements NotusAttributeBuilder<T> {
     NotusAttribute.heading.key: NotusAttribute.heading,
     NotusAttribute.block.key: NotusAttribute.block,
     NotusAttribute.embed.key: NotusAttribute.embed,
+    NotusAttribute.taskDone.key: NotusAttribute.taskDone,
   };
 
   // Inline attributes
 
   /// Bold style attribute.
   static const bold = _BoldAttribute();
+
+  /// Bold style attribute.
+  static const taskDone = TaskDoneAttribute._();
 
   /// Italic style attribute.
   static const italic = _ItalicAttribute();
@@ -325,6 +329,14 @@ class NotusStyle {
 /// Applies bold style to a text segment.
 class _BoldAttribute extends NotusAttribute<bool> {
   const _BoldAttribute() : super._('b', NotusAttributeScope.inline, true);
+}
+
+/// Applies bold style to a text segment.
+class TaskDoneAttribute extends NotusAttributeBuilder<bool> {
+  const TaskDoneAttribute._() : super._('td', NotusAttributeScope.inline);
+  /// Level 1 heading, equivalent of `H1` in HTML.
+  NotusAttribute<bool> get done => NotusAttribute<bool>._(key, scope, true);
+  NotusAttribute<bool> get notDone => NotusAttribute<bool>._(key, scope, false);
 }
 
 /// Applies italic style to a text segment.
